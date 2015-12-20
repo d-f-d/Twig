@@ -1,0 +1,7 @@
+services:
+  twig-with-bem:
+    decorates: twig
+    class: d\Twig\Twig
+    arguments: ['@app.root', '@cache.default', '%twig_extension_hash%', '@twig.loader', '%twig.config%']
+    tags:
+      - { name: service_collector, tag: 'twig.extension', call: addExtension }
