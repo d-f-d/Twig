@@ -34,9 +34,12 @@ class Node extends Twig_Node {
    * @return $this
    */
   private function echoMore() {
+    $v = '$v_' . mt_rand(0, 9999);
     $this->compiler
       ->raw(' . ')
-      ->subcompile($this->getNode('more'));
+      ->raw('((' . $v . ' = ')
+      ->subcompile($this->getNode('more'))
+      ->raw(') ? (" " . ' . $v . ') : "")');
     return $this;
   }
 
@@ -139,8 +142,8 @@ class Node extends Twig_Node {
    * @return $this
    */
   private function blockMore() {
-    $this->block()
-      ->echoSpace()
+    $this
+      ->block()
       ->echoMore();
     return $this;
   }
@@ -171,7 +174,6 @@ class Node extends Twig_Node {
   private function elementModMore() {
     $this
       ->elementMod()
-      ->echoSpace()
       ->echoMore();
     return $this;
   }
