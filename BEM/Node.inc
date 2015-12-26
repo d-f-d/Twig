@@ -90,6 +90,7 @@ class Node extends Twig_Node {
       }
     }
     elseif ($c === 'Twig_Node_Expression_Constant') {
+      $this->echoSpace();
       $this->element();
       $this->compiler->raw(' . \'--\' . ');
       $this->compiler->subcompile($mod);
