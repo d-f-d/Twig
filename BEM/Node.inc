@@ -10,6 +10,7 @@ class Node extends Twig_Node {
    * @var Compiler
    */
   private $compiler;
+  static private $blocks = [];
 
   /**
    * @param \Twig_Compiler $compiler
@@ -26,9 +27,10 @@ class Node extends Twig_Node {
    * @return $this
    */
   private function echoBlock() {
-    $this->compiler
-      ->raw(' . $context[\'block\']');
-    return $this;
+    if (isset(static::$blocks[$this->compiler->getFilename()])) {
+      return $this->appendPrimitive(static::$blocks[$this->compiler->getFilename()]);
+    }
+    return $this->appendPrimitive('{$context[\'block\']}');
   }
 
   private function append($v) {
@@ -42,14 +44,13 @@ class Node extends Twig_Node {
 
   private function appendPrimitive($v) {
     $source = $this->compiler->getSource();
-    if ($source[$pos = (strlen($source) - 1)] === '\'') {
+    if ($source[$pos = (strlen($source) - 1)] === '"') {
       $source = substr_replace($source, $v, $pos, 0);
       $this->compiler->setSource($source);
       return $this;
     }
 
-    $this->compiler
-      ->raw(' . ' . var_export($v, TRUE));
+    $this->compiler->raw(' . "' . $v . '"');
     return $this;
   }
 
@@ -60,15 +61,14 @@ class Node extends Twig_Node {
     $more = $this->getNode('more');
     $c = get_class($more);
     if (($c === 'Twig_Node_Expression_Constant')) {
-      $this->echoSpace()->append($more);
+      $this->appendPrimitive(' ')->append($more);
     }
     else {
-      $v = '$v_' . mt_rand(0, 9999);
       $this->compiler
         ->raw(' . ')
-        ->raw('((' . $v . ' = ')
+        ->raw('(($v = ')
         ->subcompile($more)
-        ->raw(') ? (" " . ' . $v . ') : "")');
+        ->raw(') ? (" " . $v) : "")');
     }
     return $this;
   }
@@ -86,43 +86,38 @@ class Node extends Twig_Node {
   /**
    * @return $this
    */
-  private function echoSpace() {
-    $this->compiler
-      ->raw(' . \' \'');
-    return $this;
-  }
-
-  /**
-   * @return $this
-   */
   private function echoMod() {
     $mod = $this->getNode('mod');
     $c = get_class($mod);
     if ($c === 'Twig_Node_Expression_Constant' && empty($mod->attributes['value'])) {
       return $this;
     }
-    if ($c === '!Twig_Node_Expression_Array') {
+    if ($c === 'Twig_Node_Expression_Array') {
       for ($i = 1; $i < count($mod->nodes); $i += 2) {
-        $this->element();
-        $this->compiler->raw(' . \'--\' . ');
-        $this->compiler
-          ->subcompile($mod->nodes[$i]);
+        if (get_class($mod->nodes[$i]) === 'Twig_Node_Expression_Constant') {
+          $this->appendPrimitive(' ')
+            ->element();
+          $this->appendPrimitive('--')
+            ->append($mod->nodes[$i]);
+          $mod->nodes[$i] = $mod->nodes[$i - 1] = NULL;
+        }
+      }
+      $mod->nodes = array_filter($mod->nodes);
+      if (!$mod->nodes) {
+        return $this;
       }
     }
-    elseif ($c === 'Twig_Node_Expression_Constant') {
-      $this->echoSpace();
-      $this->element();
-      $this->compiler->raw(' . \'--\' . ');
-      $this->compiler->subcompile($mod);
+    if ($c === 'Twig_Node_Expression_Constant') {
+      $this->appendPrimitive(' ')
+        ->element();
+      return $this->appendPrimitive('--')
+        ->append($mod);
     }
-    else {
-      $this->compiler->raw(' . (($mod_a = array_filter(is_array($mod = ');
-      $this->compiler->subcompile($mod);
-      $this->compiler->raw(') ? $mod : [$mod])) ? (($be = (" "');
-      $this->element();
-      $this->compiler->raw(' . \'--\'');
-      $this->compiler->raw(')) . implode($be, $mod_a)) : "")');
-    }
+    $this->compiler->raw(' . (($mod_a = array_filter(is_array($mod = ');
+    $this->compiler->subcompile($mod);
+    $this->compiler->raw(') ? $mod : [$mod])) ? (($be = (" "');
+    $this->element()->appendPrimitive('--');
+    $this->compiler->raw(')) . implode($be, $mod_a)) : "")');
     return $this;
   }
 
@@ -135,7 +130,8 @@ class Node extends Twig_Node {
     if ($this->getAttribute('method') !== 'setBlock') {
       $this->compiler->write('echo "class=\'"');
       $this->{$this->getAttribute('method')}($compiler);
-      $this->compiler->raw(' . "\'"')->raw(";\n");
+      $this->appendPrimitive("'");
+      $this->compiler->raw(";\n");
     }
     else {
       $this->{$this->getAttribute('method')}($compiler);
@@ -143,9 +139,15 @@ class Node extends Twig_Node {
   }
 
   private function setBlock(Twig_Compiler $compiler) {
+    if (get_class($b = $this->getNode('block')) === 'Twig_Node_Expression_Constant') {
+      static::$blocks[$compiler->getFilename()] = $b->attributes['value'];
+    }
+    else {
+      unset(static::$blocks[$compiler->getFilename()]);
+    }
     $compiler
       ->write('$context[\'block\'] = ')
-      ->subcompile($this->getNode('block'))
+      ->subcompile($b)
       ->raw(";\n");
   }
 
@@ -162,7 +164,7 @@ class Node extends Twig_Node {
    */
   private function blockMore() {
     $this
-      ->block()
+      ->echoBlock()
       ->echoMore();
     return $this;
   }
@@ -171,7 +173,9 @@ class Node extends Twig_Node {
    * @return $this
    */
   private function element() {
-    $this->echoBlock()->echoElement();
+    $this
+      ->echoBlock()
+      ->echoElement();
     return $this;
   }
 
@@ -181,7 +185,6 @@ class Node extends Twig_Node {
   private function elementMod() {
     $this
       ->element()
-//      ->echoSpace()
       ->echoMod();
     return $this;
   }
@@ -195,4 +198,5 @@ class Node extends Twig_Node {
       ->echoMore();
     return $this;
   }
+
 }
