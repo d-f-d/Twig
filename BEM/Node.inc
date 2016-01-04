@@ -1,12 +1,13 @@
 <?php
 namespace d\Twig\BEM;
 
+use d\Twig\Compiler;
 use Twig_Compiler;
 use Twig_Node;
 
 class Node extends Twig_Node {
   /**
-   * @var Twig_Compiler
+   * @var Compiler
    */
   private $compiler;
 
@@ -30,6 +31,28 @@ class Node extends Twig_Node {
     return $this;
   }
 
+  private function append($v) {
+    if (is_object($v) && get_class($v) === 'Twig_Node_Expression_Constant') {
+      return $this->appendPrimitive($v->attributes['value']);
+    }
+    $this->compiler
+      ->raw(' . ')->subcompile($v);
+    return $this;
+  }
+
+  private function appendPrimitive($v) {
+    $source = $this->compiler->getSource();
+    if ($source[$pos = (strlen($source) - 1)] === '\'') {
+      $source = substr_replace($source, $v, $pos, 0);
+      $this->compiler->setSource($source);
+      return $this;
+    }
+
+    $this->compiler
+      ->raw(' . ' . var_export($v, TRUE));
+    return $this;
+  }
+
   /**
    * @return $this
    */
@@ -37,10 +60,7 @@ class Node extends Twig_Node {
     $more = $this->getNode('more');
     $c = get_class($more);
     if (($c === 'Twig_Node_Expression_Constant')) {
-      $this->echoSpace();
-      $this->compiler
-        ->raw(' . ')
-        ->subcompile($more);
+      $this->echoSpace()->append($more);
     }
     else {
       $v = '$v_' . mt_rand(0, 9999);
@@ -57,9 +77,9 @@ class Node extends Twig_Node {
    * @return $this
    */
   private function echoElement() {
-    $this->compiler
-      ->raw(' . \'__\' . ')
-      ->subcompile($this->getNode('element'));
+    $this
+      ->appendPrimitive('__')
+      ->append($this->getNode('element'));
     return $this;
   }
 

@@ -14,5 +14,6 @@ class Twig extends TwigEnvironment {
     $this->addExtension(new Extension());
     $this->addTokenParser(new BEM\TokenParser('b'));
     $this->addTokenParser(new BEM\TokenParser('e', 'element'));
+    $this->setCompiler((new Compiler($this)));
   }
 }
