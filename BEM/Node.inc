@@ -4,6 +4,7 @@ namespace d\Twig\BEM;
 use d\Twig\Compiler;
 use Twig_Compiler;
 use Twig_Node;
+use Twig_NodeInterface;
 
 class Node extends Twig_Node {
   /**
@@ -13,15 +14,18 @@ class Node extends Twig_Node {
   static private $blocks = [];
 
   /**
-   * @param \Twig_Compiler $compiler
+   * @param Compiler $compiler
    * @return $this
    */
-  private function start(Twig_Compiler $compiler) {
+  private function start(Compiler $compiler) {
     $this->compiler = $compiler;
     $this->compiler->addDebugInfo($this);
     return $this;
   }
 
+  /**
+   * @param Twig_Compiler $compiler
+   */
   public function compile(Twig_Compiler $compiler) {
     $this->start($compiler)->write('');
     if ($this->getAttribute('method') !== 'setBlock') {
@@ -46,7 +50,6 @@ class Node extends Twig_Node {
     return $this->appendPrimitive('{$context[\'block\']}');
   }
 
-
   /**
    * @param string $s
    * @return $this
@@ -66,16 +69,16 @@ class Node extends Twig_Node {
   }
 
   /**
-   * @param \Twig_NodeInterface $node
+   * @param Twig_NodeInterface $node
    * @return $this
    */
-  private function subcompile(\Twig_NodeInterface $node) {
+  private function subcompile(Twig_NodeInterface $node) {
     $this->compiler->subcompile($node);
     return $this;
   }
 
   /**
-   * @param $v
+   * @param mixed|Twig_NodeInterface $v
    * @return $this
    */
   private function append($v) {
@@ -86,7 +89,7 @@ class Node extends Twig_Node {
   }
 
   /**
-   * @param $v
+   * @param mixed $v
    * @return $this
    */
   private function appendPrimitive($v) {
