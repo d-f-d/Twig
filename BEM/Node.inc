@@ -14,10 +14,10 @@ class Node extends Twig_Node {
   static private $blocks = [];
 
   /**
-   * @param Compiler $compiler
+   * @param Twig_Compiler $compiler
    * @return $this
    */
-  private function start(Compiler $compiler) {
+  private function start(Twig_Compiler $compiler) {
     $this->compiler = $compiler;
     $this->compiler->addDebugInfo($this);
     return $this;
