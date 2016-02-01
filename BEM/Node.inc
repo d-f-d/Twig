@@ -135,11 +135,11 @@ class Node extends Twig_Node {
    */
   private function echoMod() {
     $mod = $this->getNode('mod');
-    $c = get_class($mod);
-    if ('Twig_Node_Expression_Constant' === $c && empty($mod->attributes['value'])) {
+    $class = get_class($mod);
+    if ('Twig_Node_Expression_Constant' === $class && empty($mod->attributes['value'])) {
       return $this;
     }
-    if ('Twig_Node_Expression_Array' === $c) {
+    if ('Twig_Node_Expression_Array' === $class) {
       for ($i = 1; $i < count($mod->nodes); $i += 2) {
         if ('Twig_Node_Expression_Constant' === get_class($mod->nodes[$i])) {
           $this
@@ -155,7 +155,7 @@ class Node extends Twig_Node {
         return $this;
       }
     }
-    if ('Twig_Node_Expression_Constant' === $c) {
+    if ('Twig_Node_Expression_Constant' === $class) {
       return $this
         ->appendPrimitive(' ')
         ->element()
