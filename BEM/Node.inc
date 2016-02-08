@@ -30,9 +30,9 @@ class Node extends Twig_Node {
     $this->start($compiler)->write('');
     if ($this->getAttribute('method') !== 'setBlock') {
       $this
-        ->raw('echo "class=\'"')
+        ->raw('echo "class=\\""')
         ->{$this->getAttribute('method')}($compiler)
-        ->appendPrimitive("'");
+        ->appendPrimitive("\\\"");
     }
     else {
       $this->setBlock($compiler);
