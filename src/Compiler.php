@@ -6,7 +6,7 @@
  * Time: 23:33
  */
 
-namespace d\Twig;
+namespace dfd\Twig;
 
 use Twig_Compiler;
 

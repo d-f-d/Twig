@@ -7,27 +7,27 @@ services:
       - { name: service_collector, tag: 'twig.token_parser', call: addTokenParser }
       - { name: service_collector, tag: 'twig.compiler', call: setCompiler }
       - { name: service_collector, tag: 'twig.lexer', call: setLexer }
-  d-twig.extension:
-    class: d\Twig\Extension
+  twig.dfd.extension:
+    class: dfd\Twig\Extension
     tags:
       - { name: twig.extension }
-  d-twig.token_parser.bem.block:
-    class: d\Twig\BEM\TokenParser
+  twig.dfd.token_parser.bem.block:
+    class: dfd\Twig\BEM\TokenParser
     arguments: [b]
     tags:
       - { name: twig.token_parser }
-  d-twig.token_parser.bem.element:
-    class: d\Twig\BEM\TokenParser
+  twig.dfd.token_parser.bem.element:
+    class: dfd\Twig\BEM\TokenParser
     arguments: [e, element]
     tags:
       - { name: twig.token_parser }
-  d-twig.compiler:
-    class: d\Twig\Compiler
+  twig.dfd.compiler:
+    class: dfd\Twig\Compiler
     arguments: ['@twig']
     tags:
       - { name: twig.compiler }
-  d-twig.lexer:
-    class: d\Twig\Lexer
+  twig.dfd.lexer:
+    class: dfd\Twig\Lexer
     arguments: ['@twig', []]
     tags:
       - { name: twig.lexer }

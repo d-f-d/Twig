@@ -1,5 +1,5 @@
 <?php
-namespace d\Twig\BEM;
+namespace dfd\Twig\BEM;
 
 use Twig_Token;
 use Twig_TokenParser;

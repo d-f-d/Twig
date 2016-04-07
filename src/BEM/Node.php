@@ -1,5 +1,5 @@
 <?php
-namespace d\Twig\BEM;
+namespace dfd\Twig\BEM;
 
 use d\Twig\Compiler;
 use Twig_Compiler;
