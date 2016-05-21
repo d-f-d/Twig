@@ -24,7 +24,10 @@ class Extension extends Twig_Extension {
   public function getFunctions() {
     return [
       new Twig_SimpleFunction('render_fragment', [$this, 'renderFragment'], ['is_safe' => ['html']]),
-      new Twig_SimpleFunction('render_fragment_deferred', [$this, 'renderFragmentDeferred'], ['is_safe' => ['html']]),
+      new Twig_SimpleFunction('render_fragment_deferred', [
+        $this,
+        'renderFragmentDeferredPlaceholder'
+      ], ['is_safe' => ['html']]),
     ];
   }
 
@@ -33,7 +36,7 @@ class Extension extends Twig_Extension {
    * @param array $context
    * @return RenderableInterface|string
    */
-  public function renderFragment($class, $context = []) {
+  public function renderFragment($class) {
     if ((new \ReflectionClass($class))->implementsInterface('Drupal\\Core\\Render\\RenderableInterface')) {
       $args = func_get_args();
       array_shift($args);
@@ -46,17 +49,37 @@ class Extension extends Twig_Extension {
    * @param string $class
    * @return array|string
    */
-  public function renderFragmentDeferred($class) {
+  public function renderFragmentDeferredPlaceholder($class) {
     if ((new \ReflectionClass($class))->implementsInterface('Drupal\\Core\\Render\\RenderableInterface')) {
       $args = func_get_args();
       array_shift($args);
+      foreach ($args as $i => $arg) {
+        if (is_object($arg)) {
+          $args[$i] = $arg->id();
+        }
+      }
+      array_unshift($args, $class);
       return [
-        '#lazy_builder'       => [$class . '::deferred', $args],
+        '#lazy_builder'       => [get_called_class() . '::renderFragmentDeferred', $args],
         '#create_placeholder' => TRUE,
       ];
     }
     return '';
   }
+
+  static public function renderFragmentDeferred($class) {
+    $args = func_get_args();
+    array_shift($args);
+    $reflection = new \ReflectionClass($class);
+    $parameters = $reflection->getMethod('__construct')->getParameters();
+    foreach ($args as $i => $arg) {
+      if ($parameters[$i]->getClass()) {
+        $args[$i] = $parameters[$i]->getClass()->getMethod('load')->invoke(NULL, $arg);
+      }
+    }
+    return $reflection->newInstanceArgs($args)->toRenderable();
+  }
+
 
   /**
    * @return string
