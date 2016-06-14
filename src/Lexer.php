@@ -16,7 +16,7 @@ class Lexer extends Twig_Lexer implements Twig_LexerInterface {
   function tokenize($code, $filename = NULL) {
     $code = str_replace(array("\r\n", "\r"), "\n", $code);
     ob_start();
-    eval('?>' . $code);
+    eval('namespace tmpnamespace_' .md5($code)  . ';'.'?>' . $code);
     $code = ob_get_clean();
     return parent::tokenize($code, $filename);
   }
