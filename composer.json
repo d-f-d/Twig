@@ -3,9 +3,10 @@
   "type": "drupal-submodule",
   "description": "Drupal sugar, BEM and php eval",
   "license": "GPL-2.0+",
-  "version": "v1.1.1",
+  "version": "v1.2.0",
   "require": {
-    "php": ">=5.3.0"
+    "php": ">=5.4.0",
+    "twig/twig": ">=1.31 <2"
   },
   "autoload": {
     "psr-4": {

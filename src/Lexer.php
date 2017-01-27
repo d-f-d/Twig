@@ -1,23 +1,31 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: punk_undead
- * Date: 12.02.16
- * Time: 1:41
- */
 
 namespace dfd\Twig;
 
+use Drupal\Core\Template\TwigEnvironment;
 use Twig_Lexer;
 use Twig_LexerInterface;
 
 class Lexer extends Twig_Lexer implements Twig_LexerInterface {
 
-  function tokenize($code, $filename = NULL) {
+  function tokenize($source, $filename = NULL) {
+    $code = $source->getCode();
     $code = str_replace(array("\r\n", "\r"), "\n", $code);
-    ob_start();
-    eval('namespace tmpnamespace_' .md5($code)  . ';'.'?>' . $code);
-    $code = ob_get_clean();
-    return parent::tokenize($code, $filename);
+    $code = $this->earlyRender($code);
+    return parent::tokenize(new \Twig_Source($code, $source->getName(), $source->getPath()), $filename);
   }
+
+  protected function earlyRender($code) {
+    if (strpos($code, '{% early %}') === false) {
+      return $code;
+    }
+    $code = preg_replace('/{% ((end)?early) %}/', '<!-- $1 -->', $code);
+    /** @var TwigEnvironment $twig */
+    $twig = \Drupal::service('twig');
+    $rendered = $twig->renderInline($code);
+    preg_match_all('/<!-- early -->.*?<!-- endearly -->/s', $code, $orig_match);
+    preg_match_all('/<!-- early -->(.*?)<!-- endearly -->/s', $rendered, $render_match);
+    return str_replace($orig_match[0], $render_match[1], $code);
+  }
+
 }

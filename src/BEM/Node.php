@@ -1,7 +1,8 @@
 <?php
+
 namespace dfd\Twig\BEM;
 
-use d\Twig\Compiler;
+use dfd\Twig\Compiler;
 use Twig_Compiler;
 use Twig_Node;
 use Twig_NodeInterface;
