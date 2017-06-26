@@ -1,11 +1,11 @@
 {
   "name": "d-f-d/twig",
   "type": "drupal-submodule",
-  "description": "Drupal sugar, BEM and php eval",
+  "description": "Drupal sugar, BEM and early render",
   "license": "GPL-2.0+",
-  "version": "v1.2.0",
+  "version": "v1.2.1",
   "require": {
-    "php": ">=5.4.0",
+    "php": ">=7.1",
     "twig/twig": ">=1.31 <2"
   },
   "autoload": {

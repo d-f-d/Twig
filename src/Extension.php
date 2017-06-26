@@ -12,7 +12,7 @@ class Extension extends Twig_Extension {
   /**
    * @return array
    */
-  public function getFilters() {
+  public function getFilters(): array {
     return [
       new Twig_SimpleFilter('check_markup', 'check_markup', ['is_safe' => ['html']]),
       new Twig_SimpleFilter('text_summary', 'text_summary', ['is_safe' => ['html']]),
@@ -22,12 +22,15 @@ class Extension extends Twig_Extension {
   /**
    * @return array
    */
-  public function getFunctions() {
+  public function getFunctions(): array {
     return [
-      new Twig_SimpleFunction('render_fragment', [$this, 'renderFragment'], ['is_safe' => ['html']]),
+      new Twig_SimpleFunction('render_fragment', [
+        $this,
+        'renderFragment',
+      ], ['is_safe' => ['html']]),
       new Twig_SimpleFunction('render_fragment_deferred', [
         $this,
-        'renderFragmentDeferredPlaceholder'
+        'renderFragmentDeferredPlaceholder',
       ], ['is_safe' => ['html']]),
     ];
   }
@@ -35,9 +38,10 @@ class Extension extends Twig_Extension {
   /**
    * @param string $class
    * @param array $context
+   *
    * @return RenderableInterface|string
    */
-  public function renderFragment($class) {
+  public function renderFragment(string $class) {
     if ((new \ReflectionClass($class))->implementsInterface('Drupal\\Core\\Render\\RenderableInterface')) {
       $args = func_get_args();
       array_shift($args);
@@ -48,9 +52,10 @@ class Extension extends Twig_Extension {
 
   /**
    * @param string $class
+   *
    * @return array|string
    */
-  public function renderFragmentDeferredPlaceholder($class) {
+  public function renderFragmentDeferredPlaceholder(string $class) {
     if ((new \ReflectionClass($class))->implementsInterface('Drupal\\Core\\Render\\RenderableInterface')) {
       $args = func_get_args();
       array_shift($args);
@@ -61,21 +66,31 @@ class Extension extends Twig_Extension {
       }
       array_unshift($args, $class);
       return [
-        '#lazy_builder'       => [get_called_class() . '::renderFragmentDeferred', $args],
+        '#lazy_builder' => [
+          get_called_class() . '::renderFragmentDeferred',
+          $args,
+        ],
         '#create_placeholder' => TRUE,
       ];
     }
     return '';
   }
 
-  static public function renderFragmentDeferred($class) {
+  /**
+   * @param string $class
+   *
+   * @return array
+   */
+  static public function renderFragmentDeferred(string $class): array {
     $args = func_get_args();
     array_shift($args);
     $reflection = new \ReflectionClass($class);
     $parameters = $reflection->getMethod('__construct')->getParameters();
     foreach ($args as $i => $arg) {
       if ($parameters[$i]->getClass()) {
-        $args[$i] = $parameters[$i]->getClass()->getMethod('load')->invoke(NULL, $arg);
+        $args[$i] = $parameters[$i]->getClass()
+          ->getMethod('load')
+          ->invoke(NULL, $arg);
       }
     }
     return $reflection->newInstanceArgs($args)->toRenderable();
@@ -85,7 +100,7 @@ class Extension extends Twig_Extension {
   /**
    * @return string
    */
-  public function getName() {
+  public function getName(): string {
     return __CLASS__;
   }
 }

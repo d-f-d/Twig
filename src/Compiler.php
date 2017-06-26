@@ -9,7 +9,7 @@ class Compiler extends Twig_Compiler {
   /**
    * @param string $source
    */
-  function setSource($source) {
+  function setSource(string $source) {
     $this->source = $source;
   }
 }

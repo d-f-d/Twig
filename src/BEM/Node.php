@@ -55,7 +55,7 @@ class Node extends Twig_Node {
    * @param string $s
    * @return $this
    */
-  private function raw($s) {
+  private function raw(string $s) {
     $this->compiler->raw($s);
     return $this;
   }
@@ -64,7 +64,7 @@ class Node extends Twig_Node {
    * @param string $s
    * @return $this
    */
-  private function write($s) {
+  private function write(string $s) {
     $this->compiler->write($s);
     return $this;
   }
